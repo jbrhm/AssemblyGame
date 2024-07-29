@@ -288,6 +288,10 @@ _start:
 	mov r12d, eax ; Store the window root id
 
 	call x11_next_id
+	mov r13d, eax ; store the graphical context in r13
+
+	call x11_next_id 	
+	mov r14d, eax ; store the font id in r14
 
 	mov rax, SYSCALL_EXIT
 	mov rdi, 0
