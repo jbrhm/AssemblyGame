@@ -436,6 +436,24 @@ static poll_messages:function
 		mov rdi, [rsp + 0*4]
 		call x11_read_reply
 
+		%define X11_EVENT_EXPOSURE 0xc
+		cmp eax, X11_EVENT_EXPOSURE
+		jnz .recieved_other_event
+
+		.recieved_other_event:
+		mov BYTE [rsp + 24], 1
+		jnz .loop
+
+		.draw_text:
+			mov rdi, [rsp + 0*4] ; socket fd
+			lea rsi, [hello_world]
+			mov edx, 13 ; len
+			mov ecx, [rsp + 16] ; window id
+			mov r8d, [rsp + 20] ; gc id
+			mov r9d, [100<<16] ; x
+			or r9d, 100 ; y
+			call x11_draw_text
+
 		jmp .loop
 	
 	add rsp, 32
@@ -507,6 +525,8 @@ static x11_draw_text:function
 	pop rbp
 	ret
 
+
+
 die: 
 	mov rax, SYSCALL_EXIT
 	mov rdi, 1
@@ -516,6 +536,9 @@ section .rodata:
 
 sun_path: db "/tmp/.X11-unix/X1", 0
 static sun_path:data
+
+hello_world: db "Hello, World"
+static hello_world:data
 
 section .data
 id: dd 0
@@ -534,7 +557,6 @@ section .text
 global _start
 
 _start:
-
 	call x11_server_connect
 	mov r15, rax ; store the file descriptor
 
@@ -572,6 +594,14 @@ _start:
 	mov rdi, r15
 	mov esi, ebx
 	call x11_map_window
+
+	mov rdi, r15 ; fd
+	call set_fd_non_blocking
+
+	mov rdi, r15 ; fd
+	mov esi, ebx ; window id
+	mov edx, r13d ; gc id
+	call poll_messages
 
 	mov rax, SYSCALL_EXIT
 	mov rdi, 0
