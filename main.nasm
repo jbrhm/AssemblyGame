@@ -285,6 +285,9 @@ _start:
 	mov rdi, rax
 	call x11_handshake
 
+	mov r12d, eax ; Store the window root id
+
+	call x11_next_id
 
 	mov rax, SYSCALL_EXIT
 	mov rdi, 0
