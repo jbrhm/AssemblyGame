@@ -45,13 +45,13 @@ static x11_server_connect:function
 	mov r12, rdi
 	lea rdi, [rsp + 2]
 	cld
-	mov rcx, 19 ; Length of string + null terminator
+	mov ecx, 19 ; Length of string + null terminator
 	rep movsb ; copy the data
 
 	; Connects to the server
 	mov rax, SYSCALL_CONNECT
 	mov rdi, r12
-	mov rsi, rsp
+	lea rsi, [rsp]
 	%define SIZEOF_SOCKADDR_UN 2+108 ; the sizes of the two arguments
 	mov rdx, SIZEOF_SOCKADDR_UN
 	syscall
@@ -134,18 +134,18 @@ static x11_handshake:function
 	imul rax, 8
 
 	add rdi, 32 ; skip connection
-	add rdi, rcx ; skip vendor
 
 	; skip padding
 	add rdi, 3
-	add rdi, -4
+	and rdi, -4
 
 	add rdi, rax ; skip formatting
+	add rdi, rcx ; skip vendor
 
 	mov eax, DWORD [rdi] ; store the window root id
 
 	; set root_visual_id
-	mov eax, DWORD [rdi + 32]
+	mov edx, DWORD [rdi + 32]
 	mov DWORD [root_visual_id], edx
 
 	; epilog
@@ -314,7 +314,7 @@ static x11_map_window:function
 	sub rsp, 16
 
 	%define X11_OP_REQ_MAP_WINDOW 0x08
-	mov DWORD [rsp + 0*4], X11_OP_REQ_MAP_WINDOW
+	mov DWORD [rsp + 0*4], X11_OP_REQ_MAP_WINDOW | (2<<16)
 	mov DWORD [rsp + 1*4], esi
 
 	mov rax, SYSCALL_WRITE
@@ -416,6 +416,7 @@ static poll_messages:function
 
 	mov DWORD [rsp + 16], esi ; window id
 	mov DWORD [rsp + 20], edx ; gc id
+	mov BYTE [rsp + 24], 0
 
 	.loop:
 		mov rax, SYSCALL_POLL
@@ -438,10 +439,13 @@ static poll_messages:function
 
 		%define X11_EVENT_EXPOSURE 0xc
 		cmp eax, X11_EVENT_EXPOSURE
-		jnz .recieved_other_event
+		jnz .received_other_event
 
-		.recieved_other_event:
+		.received_exposed_event:
 		mov BYTE [rsp + 24], 1
+
+		.received_other_event:
+		cmp BYTE [rsp + 24], 1
 		jnz .loop
 
 		.draw_text:
@@ -570,6 +574,10 @@ _start:
 
 	call x11_next_id 	
 	mov r14d, eax ; store the font id in r14
+
+	mov rdi, r15
+	mov esi, r14d
+	call x11_open_font
 
 	mov rdi, r15
 	mov esi, r13d
