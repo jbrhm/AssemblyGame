@@ -9,6 +9,7 @@ CPU X64 ; We are targeting the x86_64 CPU family
 %define SYSCALL_SOCKET 41
 %define SYSCALL_CONNECT 42
 %define SYSCALL_EXIT 60
+%define SYSCALL_FNCTL 72
 
 ; File Descriptors
 %define STDOUT 1
@@ -325,6 +326,68 @@ static x11_map_window:function
 	jnz die
 
 	add rsp, 16
+
+	pop rbp
+	ret
+
+; Sets the socket fd to non-blocking
+; this allows it to be polled
+; rdi: fd
+set_fd_non_blocking:
+static set_fd_non_blocking:static
+	push rbp
+	mov rbp, rsp
+
+	%define F_GETFL 3
+	%define F_SETFL 4
+
+	%define O_NONBLOCK 2048
+
+	mov rax, SYSCALL_FNCTL
+	mov rdi, rdi
+	mov rsi, F_GETFL
+	mov rdx, 0
+	syscall
+
+	cmp rax, 0
+	jl die
+
+	mov rdx, rax
+	or rdx, O_NONBLOCK
+
+	mov rax, SYSCALL_FNCTL
+	mov rdi, rdi
+	mov rsi, F_SETFL
+	mov rdx, rdx
+	syscall
+
+	cmp rax, 0
+	jl die
+
+	pop rbp
+	ret
+
+; Read the X11 server reply
+; returns the msg code in al
+x11_read_reply:
+static x11_read_reply:function
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 32
+
+	mov rax, SYSCALL_READ
+	mov rdi, rdi
+	lea rsi, [rsp]
+	mov rdx, 32
+	syscall
+
+	cmp rax, 1
+	jle die
+
+	mov al, BYTE [rsp]
+
+	add rsp, 32
 
 	pop rbp
 	ret
