@@ -89,6 +89,7 @@ static x11_handshake:function
 	; The response data will be written to the stack
 	mov rax, SYSCALL_READ
 	mov rdi, rdi
+	lea rsi, [rsp]
 	mov rdx, 8
 	syscall
 
@@ -104,12 +105,12 @@ static x11_handshake:function
 	; Read the rest of the server's response
 	mov rax, SYSCALL_READ
 	mov rdi, rdi ; fd
-	mov rsi, [rsp] ; pointer to the buffer to read into
+	lea rsi, [rsp] ; pointer to the buffer to read into
 	mov rdx, 1<<15 ; Size of the read
 	syscall
 
 	cmp rax, 0 ; Checks to make sure the server replied
-	jnz die
+	jle die
 
 	; set id_base
 	; The value must be in a register to write to the var
@@ -279,6 +280,10 @@ global _start
 _start:
 
 	call x11_server_connect
+	mov r15, rax ; store the file descriptor
+
+	mov rdi, rax
+	call x11_handshake
 
 
 	mov rax, SYSCALL_EXIT
