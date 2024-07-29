@@ -261,7 +261,7 @@ section .rodata:
 sun_path: db "/tmp/.X11-unix/X1", 0
 static sun_path:data
 
-section .data:
+section .data
 id: dd 0
 static id:data
 
