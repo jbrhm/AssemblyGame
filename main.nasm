@@ -311,7 +311,7 @@ static x11_map_window:function
 
 	sub rsp, 16
 
-	%define X11_OP_REQ_MAP_WINDOW
+	%define X11_OP_REQ_MAP_WINDOW 0x08
 	mov DWORD [rsp + 0*4], X11_OP_REQ_MAP_WINDOW
 	mov DWORD [rsp + 1*4], esi
 
@@ -321,7 +321,7 @@ static x11_map_window:function
 	mov rdx, 2*4
 	syscall
 	
-	cmp rax 2*4
+	cmp rax, 2*4
 	jnz die
 
 	add rsp, 16
@@ -390,6 +390,10 @@ _start:
 	%define WINDOW_H 600
 	mov r9d, WINDOW_W | (WINDOW_H << 16)
 	call x11_create_window
+
+	mov rdi, r15
+	mov esi, ebx
+	call x11_map_window
 
 	mov rax, SYSCALL_EXIT
 	mov rdi, 0
