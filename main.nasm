@@ -448,23 +448,23 @@ static poll_messages:function
 		cmp BYTE [rsp + 24], 1
 		jnz .loop
 
-;		.draw_text:
-;			mov rdi, [rsp + 0*4] ; socket fd
-;			lea rsi, [hello_world]
-;			mov edx, 13 ; len
-;			mov ecx, [rsp + 16] ; window id
-;			mov r8d, [rsp + 20] ; gc id
-;			mov r9d, 100 ; x
-;			shl r9d, 16
-;			or r9d, 100 ; y
-;			call x11_draw_text
-
 		.draw_pixels:
 			mov rdi, [rsp + 0*4] ; socket fd
 			mov esi, [rsp + 16] ; window id
 			mov edx, [rsp + 20] ; gc id
-			mov r8d, (5 << 16) | 5 ; x and y
+			mov r8d, (50 << 16) | 50 ; x and y
 			call x11_draw_coordinate
+
+		.draw_text:
+			mov rdi, [rsp + 0*4] ; socket fd
+			lea rsi, [hello_world]
+			mov edx, 13 ; len
+			mov ecx, [rsp + 16] ; window id
+			mov r8d, [rsp + 20] ; gc id
+			mov r9d, 100 ; x
+			shl r9d, 16
+			or r9d, 100 ; y
+			call x11_draw_text
 
 		jmp .loop
 	
