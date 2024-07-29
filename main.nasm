@@ -454,7 +454,8 @@ static poll_messages:function
 			mov edx, 13 ; len
 			mov ecx, [rsp + 16] ; window id
 			mov r8d, [rsp + 20] ; gc id
-			mov r9d, [100<<16] ; x
+			mov r9d, 100 ; x
+			shl r9d, 16
 			or r9d, 100 ; y
 			call x11_draw_text
 
