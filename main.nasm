@@ -209,6 +209,21 @@ static x11_open_font:function
 	pop rbp
 	ret
 
+x11_create_gc:
+static x11_create_gc:function
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 8*8
+
+	%define X11_OP_REQ_CREATE_GC 0x37
+	%define X11_FLAG_GC_BG 0x00000004
+	%define X11_FLAG_GC_FG 0x00000008
+	%define X11_FLAG_GC_FONT 0x00004000
+	%define X11_FLAG_GC_EXPOSE 0x00010000
+
+	%define CREATE_GC_FLAG
+
 die: 
 	mov rax, SYSCALL_EXIT
 	mov rdi, 1
