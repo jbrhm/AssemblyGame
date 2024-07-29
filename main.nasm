@@ -459,6 +459,14 @@ static poll_messages:function
 			or r9d, 100 ; y
 			call x11_draw_text
 
+		.draw_pixels:
+			mov rdi, [rsp + 0*4] ; socket fd
+			mov esi, [rsp + 16] ; window id
+			mov edx, [rsp + 20] ; gc id
+			mov ecx, (100 << 16) | 25 ; x and y
+			call x11_draw_coordinate
+
+
 		jmp .loop
 	
 	add rsp, 32
@@ -530,6 +538,40 @@ static x11_draw_text:function
 	pop rbp
 	ret
 
+; Draw a coordinate on a X11 window
+; rdi: socket fd
+; esi: window id
+; edx: gc id
+; ecx: x and y
+x11_draw_coordinate:
+static x11_draw_coordinate:
+	;prolog
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 1024
+
+	%define X11_OP_REQ_POLYPOINT 0x40
+	mov BYTE [rsp + 0*4], 0 ; put 0 into the beginning of the request because we are relative to the origin
+	shl [rsp + 0*4], 8 ; shift the zero to the beginning of the message because the socket is little endian
+	or [rsp + 0*4], X11_OP_REQ_POLYPOINT ; add the OP code to the request, this is right at the beginning because it is little endian
+	or [rsp + 0*4], (4<<16) ; this is four because 3 * 4 bytes for the header, and one byte for the one pixel
+	mov [rsp + 1*4], esi
+	mov [rsp + 2*4], edx
+	mov [rsp + 3*4], ecx
+
+	; Write to the socket
+	mov rax, SYSCALL_WRITE
+	mov rdi, rdi
+	lea rsi, [rsp]
+	mov rdx, 16 ; This is 16 because every call is 16 BYTES 12 for header 4 for data 
+
+	cmp rax, rdx ; make sure we wrote all of the bytes
+	jnz die
+
+	; epilog
+	add rsp, 1024
+	pop rbp
 
 
 die: 
