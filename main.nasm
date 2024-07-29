@@ -293,6 +293,12 @@ _start:
 	call x11_next_id 	
 	mov r14d, eax ; store the font id in r14
 
+	mov rdi, r15
+	mov esi, r13d
+	mov edx, r12d
+	mov ecx, r14d
+	call x11_create_gc
+
 	mov rax, SYSCALL_EXIT
 	mov rdi, 0
 	syscall
