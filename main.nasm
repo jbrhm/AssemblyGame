@@ -448,24 +448,23 @@ static poll_messages:function
 		cmp BYTE [rsp + 24], 1
 		jnz .loop
 
-		.draw_text:
-			mov rdi, [rsp + 0*4] ; socket fd
-			lea rsi, [hello_world]
-			mov edx, 13 ; len
-			mov ecx, [rsp + 16] ; window id
-			mov r8d, [rsp + 20] ; gc id
-			mov r9d, 100 ; x
-			shl r9d, 16
-			or r9d, 100 ; y
-			call x11_draw_text
+;		.draw_text:
+;			mov rdi, [rsp + 0*4] ; socket fd
+;			lea rsi, [hello_world]
+;			mov edx, 13 ; len
+;			mov ecx, [rsp + 16] ; window id
+;			mov r8d, [rsp + 20] ; gc id
+;			mov r9d, 100 ; x
+;			shl r9d, 16
+;			or r9d, 100 ; y
+;			call x11_draw_text
 
 		.draw_pixels:
 			mov rdi, [rsp + 0*4] ; socket fd
 			mov esi, [rsp + 16] ; window id
 			mov edx, [rsp + 20] ; gc id
-			mov ecx, (100 << 16) | 25 ; x and y
+			mov r8d, (5 << 16) | 5 ; x and y
 			call x11_draw_coordinate
-
 
 		jmp .loop
 	
@@ -542,7 +541,7 @@ static x11_draw_text:function
 ; rdi: socket fd
 ; esi: window id
 ; edx: gc id
-; ecx: x and y
+; r8d: x and y
 x11_draw_coordinate:
 static x11_draw_coordinate:
 	;prolog
@@ -553,18 +552,19 @@ static x11_draw_coordinate:
 
 	%define X11_OP_REQ_POLYPOINT 0x40
 	mov BYTE [rsp + 0*4], 0 ; put 0 into the beginning of the request because we are relative to the origin
-	shl [rsp + 0*4], 8 ; shift the zero to the beginning of the message because the socket is little endian
-	or [rsp + 0*4], X11_OP_REQ_POLYPOINT ; add the OP code to the request, this is right at the beginning because it is little endian
-	or [rsp + 0*4], (4<<16) ; this is four because 3 * 4 bytes for the header, and one byte for the one pixel
-	mov [rsp + 1*4], esi
-	mov [rsp + 2*4], edx
-	mov [rsp + 3*4], ecx
+	shl BYTE [rsp + 0*4], 8 ; shift the zero to the beginning of the message because the socket is little endian
+	or DWORD [rsp + 0*4], X11_OP_REQ_POLYPOINT ; add the OP code to the request, this is right at the beginning because it is little endian
+	or DWORD [rsp + 0*4], (4<<16) ; this is four because 3 * 4 bytes for the header, and one byte for the one pixel
+	mov DWORD [rsp + 1*4], esi
+	mov DWORD [rsp + 2*4], edx
+	mov DWORD [rsp + 3*4], r8d
 
 	; Write to the socket
 	mov rax, SYSCALL_WRITE
 	mov rdi, rdi
 	lea rsi, [rsp]
 	mov rdx, 16 ; This is 16 because every call is 16 BYTES 12 for header 4 for data 
+	syscall
 
 	cmp rax, rdx ; make sure we wrote all of the bytes
 	jnz die
@@ -572,6 +572,7 @@ static x11_draw_coordinate:
 	; epilog
 	add rsp, 1024
 	pop rbp
+	ret
 
 
 die: 
