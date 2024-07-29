@@ -251,6 +251,57 @@ static x11_create_gc:function
 	pop rbp
 	ret
 
+; Create the window
+; rdi: socket fd
+; esi: new window id
+; edx window root id
+; ecx root visual id
+; r8d x and y
+; r9d w and h
+x11_create_window:
+static x11_create_window:function
+	push rbp
+	mov rbp, rsp
+
+	%define X11_OP_REQ_CREATE_WINDOW 0x01
+	%define X11_FLAG_WIN_BG_COLOR 0x00000002
+	%define X11_EVENT_FLAG_KEY_RELEASE 0x0002
+	%define X11_EVENT_FLAG_EXPOSURE 0x8000
+	%define X11_FLAG_WIN_EVENT 0x00000800
+
+	%define CREATE_WINDOW_FLAG_COUNT 2
+	%define CREATE_WINDOW_PACKET_U32_COUNT (8 + CREATE_WINDOW_FLAG_COUNT)
+	%define CREATE_WINDOW_BORDER 1
+	%define CREATE_WINDOW_GROUP 1
+
+	sub rsp, 12*8
+
+	mov DWORD [rsp + 0*4], X11_OP_REQ_CREATE_WINDOW | (CREATE_WINDOW_PACKET_U32_COUNT << 16)
+	mov DWORD [rsp + 1*4], esi
+	mov DWORD [rsp + 2*4], edx
+	mov DWORD [rsp + 3*4], r8d
+	mov DWORD [rsp + 4*4], r9d
+	mov DWORD [rsp + 5*4], CREATE_WINDOW_GROUP | (CREATE_WINDOW_BORDER << 16)
+	mov DWORD [rsp + 6*4], ecx
+	mov DWORD [rsp + 7*4], X11_FLAG_WIN_BG_COLOR | X11_FLAG_WIN_EVENT
+	mov DWORD [rsp + 8*4], 0
+	mov DWORD [rsp + 9*4], X11_EVENT_FLAG_KEY_RELEASE | X11_EVENT_FLAG_EXPOSURE
+
+	mov rax, SYSCALL_WRITE
+	mov rdi, rdi
+	lea rsi, [rsp]
+	mov rdx, CREATE_WINDOW_PACKET_U32_COUNT*4
+	syscall
+
+	cmp rax, CREATE_WINDOW_PACKET_U32_COUNT*4
+	jnz die
+
+	add rsp, 12*8
+
+	pop rbp
+	ret
+
+
 die: 
 	mov rax, SYSCALL_EXIT
 	mov rdi, 1
@@ -298,6 +349,20 @@ _start:
 	mov edx, r12d
 	mov ecx, r14d
 	call x11_create_gc
+
+	call x11_next_id
+
+	mov ebx, eax ; window id
+
+	mov rdi, r15
+	mov esi, eax
+	mov edx, r12d
+	mov ecx, [root_visual_id]
+	mov r8d, 200 | (200 << 16)
+	%define WINDOW_W 800
+	%define WINDOW_H 600
+	mov r9d, WINDOW_W | (WINDOW_H << 16)
+	call x11_create_window
 
 	mov rax, SYSCALL_EXIT
 	mov rdi, 0
