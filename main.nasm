@@ -6,6 +6,7 @@ CPU X64 ; We are targeting the x86_64 CPU family
 ; Syscalls
 %define SYSCALL_READ 0
 %define SYSCALL_WRITE 1
+%define SYSCALL_POLL 7
 %define SYSCALL_SOCKET 41
 %define SYSCALL_CONNECT 42
 %define SYSCALL_EXIT 60
@@ -389,6 +390,55 @@ static x11_read_reply:function
 
 	add rsp, 32
 
+	pop rbp
+	ret
+
+; Polls the X11 server for messages
+; rdi socket fd
+; esi window id
+; edx graphical context id
+poll_messages:
+static poll_messages:function
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 32
+
+	%define POLLIN   0x001
+	%define POLLPRI  0x002
+	%define POLLOUT  0x004
+	%define POLLERR  0x008
+	%define POLLHUP  0x010
+	%define POLLNVAL 0x020
+
+	mov DWORD [rsp + 0*4], edi
+	mov DWORD [rsp + 1*4], POLLIN
+
+	mov DWORD [rsp + 16], esi ; window id
+	mov DWORD [rsp + 20], edx ; gc id
+
+	.loop:
+		mov rax, SYSCALL_POLL
+		lea rdi, [rsp]
+		mov rsi, 1
+		mov rdx, -1
+		syscall
+
+		cmp rax, 0
+		jle die
+
+		cmp DWORD [rsp + 2*4], POLLERR
+		je die
+
+		cmp DWORD [rsp + 2*4], POLLHUP
+		je die
+
+		mov rdi, [rsp + 0*4]
+		call x11_read_reply
+
+		jmp .loop
+	
+	add rsp, 32
 	pop rbp
 	ret
 
