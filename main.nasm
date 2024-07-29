@@ -442,6 +442,71 @@ static poll_messages:function
 	pop rbp
 	ret
 
+; Draw text on X11 window
+; rdi: socket fd
+; rsi: text
+; edx: string length in bytes
+; ecx: window id
+; r8d: gc id
+; r9d: x and y
+x11_draw_text:
+static x11_draw_text:function
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 1024
+
+	mov DWORD [rsp + 1*4], ecx ; put window id on the stack
+	mov DWORD [rsp + 2*4], r8d ; store gc id on the stack
+	mov DWORD [rsp + 3*4], r9d ; store x and y on the stack
+	
+	mov r8d, edx ; store string length in r8d
+	mov QWORD [rsp + 1024 - 8], rdi ; store the socket fd
+
+	; Compute padding and packet u32 count
+	mov eax, edx ; dividend
+	mov ecx, 4 ; divisor
+	cdq; sign extend
+	idiv ecx ; LLVM optimizer
+	neg edx
+	and edx, 3
+	mov r9d, edx ; padding
+
+	mov eax, r8d
+	add eax, r9d
+	shr eax, 2 
+	add eax, 4 ; eax has packet u32 count
+
+	%define X11_OP_REQ_IMAGE_TEXT8 0x4c
+	mov DWORD [rsp + 0*4], r8d
+	shl DWORD [rsp + 0*4], 8
+	or DWORD [rsp + 0*4], X11_OP_REQ_IMAGE_TEXT8
+	mov ecx, eax
+	shl ecx, 16
+	or [rsp + 0*4], ecx
+
+	; copy string into packet
+	mov rsi, rsi
+	lea rdi, [rsp + 4*4] ; dest
+	cld ; set the move forward flag
+	mov ecx, r8d ; str len
+	rep movsb ; copy the data
+
+	mov rdx, rax ; packet u32 count form calc earlier
+	imul rdx, 4
+	mov rax, SYSCALL_WRITE
+	mov rdi, QWORD [rsp + 1024 - 8] ; fd
+	lea rsi, [rsp]
+	syscall
+
+	cmp rax, rdx
+	jnz die
+
+	add rsp, 1024
+
+	pop rbp
+	ret
+
 die: 
 	mov rax, SYSCALL_EXIT
 	mov rdi, 1
