@@ -6,11 +6,13 @@ CPU X64 ; We are targeting the x86_64 CPU family
 ; Syscalls
 %define SYSCALL_READ 0
 %define SYSCALL_WRITE 1
+%define SYSCALL_CLOSE 3
 %define SYSCALL_POLL 7
 %define SYSCALL_SOCKET 41
 %define SYSCALL_CONNECT 42
 %define SYSCALL_EXIT 60
 %define SYSCALL_FNCTL 72
+%define SYSCALL_FSYNC 74
 
 ; File Descriptors
 %define STDOUT 1
@@ -419,6 +421,16 @@ static poll_messages:function
 	mov BYTE [rsp + 24], 0
 
 	.loop:
+;		mov rax, SYSCALL_CLOSE
+;		mov rdi, [rsp]
+;		syscall
+;
+;		call x11_server_connect
+;		mov rdi, rax
+;
+;		call set_fd_non_blocking
+;		mov [rsp], rdi
+
 		mov rax, SYSCALL_POLL
 		lea rdi, [rsp]
 		mov rsi, 1
@@ -448,23 +460,30 @@ static poll_messages:function
 		cmp BYTE [rsp + 24], 1
 		jnz .loop
 
+		mov eax, DWORD [paddle_location]
+		add eax, DWORD 10
+		mov DWORD [paddle_location], eax
+
 		.draw_pixels:
 			mov rdi, [rsp + 0*4] ; socket fd
 			mov esi, [rsp + 16] ; window id
 			mov edx, [rsp + 20] ; gc id
-			mov r8d, (50 << 16) | 50 ; x and y
+			mov r8d, [paddle_location]
+			shl r8d, 16
+			or r8d, 50 ; x and y
 			call x11_draw_coordinate
 
 		.draw_text:
 			mov rdi, [rsp + 0*4] ; socket fd
-			lea rsi, [hello_world]
-			mov edx, 13 ; len
+			lea rsi, [brick_breaker_title]
+			mov edx, 14 ; len
 			mov ecx, [rsp + 16] ; window id
 			mov r8d, [rsp + 20] ; gc id
-			mov r9d, 100 ; x
+			mov r9d, 50 ; x
 			shl r9d, 16
-			or r9d, 100 ; y
+			or r9d, 360 ; y
 			call x11_draw_text
+
 
 		jmp .loop
 	
@@ -569,11 +588,14 @@ static x11_draw_coordinate:
 	cmp rax, rdx ; make sure we wrote all of the bytes
 	jnz die
 
+;	mov rax, SYSCALL_FSYNC
+;	mov rdi, rdi
+;	syscall
+
 	; epilog
 	add rsp, 1024
 	pop rbp
 	ret
-
 
 die: 
 	mov rax, SYSCALL_EXIT
@@ -585,8 +607,8 @@ section .rodata:
 sun_path: db "/tmp/.X11-unix/X1", 0
 static sun_path:data
 
-hello_world: db "Hello, World"
-static hello_world:data
+brick_breaker_title: db "Brick Breaker"
+static brick_breaker_title:data
 
 section .data
 id: dd 0
@@ -600,6 +622,9 @@ static id_mask:data
 
 root_visual_id: dd 0
 static root_visual_id:data
+
+paddle_location: dd 0
+static paddle_location:data
 
 section .text
 global _start
