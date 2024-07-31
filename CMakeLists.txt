@@ -5,7 +5,7 @@ set(CMAKE_ASM_NASM_OBJECT_FORMAT "elf64") # This needs to go before the enable_l
 enable_language(ASM_NASM)
 set(CMAKE_ASM_NASM_LINK_EXECUTABLE "ld <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>") # Broken in 3.27
 
-set(CMAKE_ASM_NASM_FLAGS_DEBUG "-g -Fdwarf")
+set(CMAKE_ASM_NASM_FLAGS "-g -Fdwarf")
 
 file(GLOB_RECURSE srcs CONFIGURE_DEPENDS src/*.nasm)
 
@@ -17,3 +17,6 @@ project(
 )
 
 add_executable(AssemblyGame ${srcs})
+
+target_link_libraries(AssemblyGame PRIVATE X11)
+target_link_options(AssemblyGame PRIVATE --dynamic-linker /lib64/ld-linux-x86-64.so.2) # Required to find the executable
