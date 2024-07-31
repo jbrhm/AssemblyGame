@@ -10,6 +10,7 @@ extern open_window
 extern set_color
 extern draw_line
 extern draw_rectangle
+extern draw_solid_rectangle
 
 ; Utility Functions
 extern cout
@@ -22,8 +23,6 @@ section .text
 global _start
 
 _start:
-
-
 	call open_window
 
 	call set_color
@@ -32,7 +31,7 @@ _start:
 	mov rsi, 30
 	mov rdx, 100
 	mov rcx, 200
-	call draw_rectangle
+	call draw_solid_rectangle
 
 
 	.loop:

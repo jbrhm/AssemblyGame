@@ -31,6 +31,7 @@ global open_window
 global set_color
 global draw_line
 global draw_rectangle
+global draw_solid_rectangle
 
 open_window:
 	push rbp
@@ -168,7 +169,7 @@ draw_line:
 	ret
 
 
-; Draws a line from two window coordinates
+; Draws a rectanlge at window coordinates
 ; rdi: x
 ; rsi: y
 ; rdx: width
@@ -199,6 +200,60 @@ draw_rectangle:
 	pop rbp
 	ret
 
+; Draws a solid rectangle at window coordinates
+; rdi: x
+; rsi: y
+; rdx: width
+; rcx: height
+draw_solid_rectangle:
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 64
+
+	mov QWORD [rsp + 0*8], rdi ; x
+	mov QWORD [rsp + 1*8], rsi ; y
+	mov QWORD [rsp + 2*8], rdx ; w
+	mov QWORD [rsp + 3*8], rcx ; h
+
+
+	loop:
+		; Reorder params
+		mov r9, [rsp + 2*8] ; 6
+		mov r8, [rsp + 1*8] ; 5
+		mov rcx, [rsp + 0*8] ; 4
+		mov rdx, [graphical_context] ; 3
+		mov rsi, [window] ; 2
+		mov rdi, [display] ; 1
+		mov r10, [rsp + 3*8]
+		push r10 ; 7
+		call XDrawRectangle
+
+		pop r10 ; undo the push
+		
+		; Make the rectangle one smaller
+		add QWORD [rsp + 0*8], 1
+		add QWORD [rsp + 1*8], 1
+		sub QWORD [rsp + 2*8], 2
+		sub QWORD [rsp + 3*8], 2
+
+		cmp QWORD [rsp + 3*8], 0
+		jl break
+	
+		cmp QWORD [rsp + 2*8], 0
+		jl break
+
+		jmp loop
+
+	break:
+
+	; Flush the command
+	mov rdi, [display]
+	call XFlush
+
+	add rsp, 64
+	pop rbp
+	ret
 
 section .rodata
 window_width: dq 640
