@@ -7,6 +7,7 @@ CPU X64
 
 ; GUI Functions
 extern open_window
+extern set_color
 
 ; Utility Functions
 extern cout
@@ -22,6 +23,8 @@ _start:
 
 
 	call open_window
+
+	call set_color
 
 	.loop:
 		lea rdi, [hello]

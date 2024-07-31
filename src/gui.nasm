@@ -17,12 +17,14 @@ extern XSelectInput
 extern XMapWindow
 extern XCreateGC
 extern XNextEvent
+extern XSetForeground
 
 ; Utility Functions
 extern exit_error
 
 ; Functions
 global open_window
+global set_color
 
 open_window:
 	push rbp
@@ -109,6 +111,24 @@ wait_loop_end:
 	add rsp, 64
 	pop rbp
 	ret
+
+; Sets the foreground color to white
+set_color:
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 64
+
+	mov rdi, [display]
+	mov rsi, [graphical_context]
+	mov rdx, [white_color]
+	call XSetForeground
+
+	add rsp, 64
+	pop rbp
+
+	ret
+
 
 section .rodata
 window_width: dq 640
