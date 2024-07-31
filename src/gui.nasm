@@ -8,6 +8,9 @@ CPU X64
 ; X11 Externs
 extern XOpenDisplay
 
+; Utility Functions
+extern exit_error
+
 ; Functions
 global open_window
 
@@ -20,6 +23,11 @@ open_window:
 	mov rdi, nullptr
 	call XOpenDisplay
 
+	mov [display], rax
+
 	add rsp, 64
 	pop rbp
 	ret
+
+section .data
+display: dq 0x0

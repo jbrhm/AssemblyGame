@@ -4,10 +4,14 @@
 BITS 64
 CPU X64
 
+; Functions
+
 global cout
+global exit_error
 
 ; SYSCALLS
 %define SYSCALL_WRITE 1
+%define SYSCALL_EXIT 60
 
 ; File Descriptors
 %define STDOUT 1
@@ -31,3 +35,9 @@ cout:
 	sub rsp, 64
 	pop rbp
 	ret
+
+; Exits the Program with exit code 1
+exit_error:
+	mov rax, SYSCALL_EXIT
+	mov rdi, 1
+	syscall
