@@ -102,7 +102,7 @@ wait_loop_start:
     call XNextEvent
 
     mov eax, [event]
-    cmp rax, 0x13
+    cmp rax, 0x13 ; wait for mapping event
     je wait_loop_end
 
     jmp wait_loop_start

@@ -5,6 +5,7 @@
 
 
 int main(){
+	std::cout << MapNotify << std::endl;
 	std::cout << StructureNotifyMask << std::endl;
 	return 0;
 }
