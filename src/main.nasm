@@ -12,8 +12,11 @@ extern draw_line
 extern draw_rectangle
 extern draw_solid_rectangle
 
+extern move_left_paddle_up
+
 ; Utility Functions
 extern cout
+extern sleep_in_ms
 
 section .rodata
 hello: db "Hello"
@@ -35,9 +38,9 @@ _start:
 
 
 	.loop:
-		lea rdi, [hello]
-		mov rsi, 6
-		call cout
+		call move_left_paddle_up
+		mov rdi, 50
+		call sleep_in_ms
 
 	jmp .loop
 

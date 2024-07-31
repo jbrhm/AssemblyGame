@@ -5,7 +5,11 @@ CPU X64
 
 %define nullptr 0x0
 %define StructureNotifyMask 0x20000
+%define KeyPressMask 0x1
+%define KeyReleaseMask 0x2
 %define MapNotify 0x13
+%define KeyPress 0x2
+%define KeyRelease 0x3
 
 ; X11 Externs
 extern XOpenDisplay
@@ -24,7 +28,9 @@ extern XFlush
 extern XDrawRectangle
 
 ; Utility Functions
+extern cout
 extern exit_error
+extern sleep_in_ms
 
 ; Functions
 global open_window
@@ -32,6 +38,8 @@ global set_color
 global draw_line
 global draw_rectangle
 global draw_solid_rectangle
+
+global move_left_paddle_up
 
 open_window:
 	push rbp
@@ -87,7 +95,7 @@ open_window:
 	; Select Inputs
 	mov rdi, [display]
 	mov rsi, [window]
-	mov rdx, StructureNotifyMask
+	mov rdx, StructureNotifyMask | KeyPressMask | KeyReleaseMask
 	call XSelectInput
 
 	; Map the window
@@ -255,12 +263,54 @@ draw_solid_rectangle:
 	pop rbp
 	ret
 
+; Move LeftPaddle Up
+move_left_paddle_up:
+	
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 64
+
+;    mov rdi, [display]
+;    lea rsi, [event]
+;    call XNextEvent
+;
+;    mov eax, [event]
+;    cmp rax, KeyPress ; wait for mapping event
+;    je update_left_up
+
+	; Prints movement out to stdout
+	mov rdi, [no_input_msg]
+	mov rsi, 9
+	call cout
+
+	add rsp, 64
+	pop rbp
+    ret
+
+update_left_up:
+	
+	; Prints movement out to stdout
+	mov rdi, [left_paddle_up_msg]
+	mov rsi, 15 
+	call cout
+
+	add rsp, 64
+	pop rbp
+    ret
+
 section .rodata
 window_width: dq 640
 static window_width:data
 
 window_height: dq 480
 static window_height:data
+
+left_paddle_up_msg: db "Left Paddle Up"
+static left_paddle_up_msg:data
+
+no_input_msg: db "No Input"
+static no_input_msg:data
 
 section .data
 display: dq 0x0

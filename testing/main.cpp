@@ -5,7 +5,7 @@
 
 
 int main(){
-	std::cout << MapNotify << std::endl;
-	std::cout << StructureNotifyMask << std::endl;
+	std::cout << KeyPress << std::endl;
+	std::cout << KeyRelease << std::endl;
 	return 0;
 }

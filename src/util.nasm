@@ -8,13 +8,16 @@ CPU X64
 
 global cout
 global exit_error
+global sleep_in_ms
 
 ; SYSCALLS
 %define SYSCALL_WRITE 1
+%define SYSCALL_SLEEP 35
 %define SYSCALL_EXIT 60
 
-; File Descriptors
+; Misc
 %define STDOUT 1
+%define nullptr 0x0
 
 ; Prints data out to stdout
 ; PARAMS:
@@ -41,3 +44,30 @@ exit_error:
 	mov rax, SYSCALL_EXIT
 	mov rdi, 1
 	syscall
+
+; Causes the program to sleep in ms
+; rdi: duration in ms
+sleep_in_ms:
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 64
+
+	imul rdi, 1000000 ; Convert the ms to ns
+	xor rax, rax ; zero out rax
+
+	push rdi
+	push rax
+
+	; Sleep syscall
+	mov rax, SYSCALL_SLEEP
+	mov rdi, rsp
+	mov rsi, nullptr
+	syscall
+
+	pop r10
+	pop r10
+
+	add rsp, 64
+	pop rbp
+	ret
