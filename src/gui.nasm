@@ -65,6 +65,9 @@ open_window:
 	push r10
 	push nullptr
 	call XCreateSimpleWindow
+
+	mov [window], rax
+
 	pop r10
 	pop r10
 	pop r10
@@ -95,3 +98,6 @@ static screen:data
 
 root_window: dq 0x0
 static root_window:data
+
+window: dq 0x0
+static window:data
