@@ -4,6 +4,7 @@ BITS 64
 CPU X64
 
 %define nullptr 0x0
+%define StructureNotifyMask 0x20000
 
 ; X11 Externs
 extern XOpenDisplay
@@ -12,6 +13,7 @@ extern XDefaultRootWindow
 extern XBlackPixel
 extern XWhitePixel
 extern XCreateSimpleWindow
+extern XSelectInput
 
 ; Utility Functions
 extern exit_error
@@ -66,11 +68,17 @@ open_window:
 	push nullptr
 	call XCreateSimpleWindow
 
+	pop r10 ; undo all of the pushes to the stack
+	pop r10
+	pop r10
+
 	mov [window], rax
 
-	pop r10
-	pop r10
-	pop r10
+	mov rdi, [display]
+	mov rsi, [window]
+	mov rdx, StructureNotifyMask
+	call XSelectInput
+
 
 	add rsp, 64
 	pop rbp
