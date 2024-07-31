@@ -3,6 +3,8 @@
 BITS 64
 CPU X64
 
+%define SYSCALL_EXIT 60
+
 ; Utility Functions
 extern cout
 
@@ -19,3 +21,7 @@ _start:
 	lea rdi, [hello]
 	mov rsi, 6
 	call cout
+
+	mov rax, SYSCALL_EXIT
+	mov rdi, 0
+	syscall

@@ -30,3 +30,4 @@ cout:
 
 	sub rsp, 64
 	pop rbp
+	ret
