@@ -26,6 +26,7 @@ extern XSetForeground
 extern XDrawLine
 extern XFlush
 extern XDrawRectangle
+extern XPending
 
 ; Utility Functions
 extern cout
@@ -271,6 +272,13 @@ move_left_paddle_up:
 
 	sub rsp, 64
 
+	mov rdi, [display]
+	call XPending
+
+	; See of there are any pending events
+	cmp rax, 0
+	je no_events
+
     mov rdi, [display]
     lea rsi, [event]
     call XNextEvent
@@ -278,6 +286,8 @@ move_left_paddle_up:
     mov eax, [event]
     cmp rax, KeyPress ; wait for mapping event
     je update_left_up
+
+no_events:
 
 	; Prints movement out to stdout
 	lea edi, [no_input_msg]
