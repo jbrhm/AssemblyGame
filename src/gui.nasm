@@ -4,7 +4,7 @@ BITS 64
 CPU X64
 
 %define nullptr 0x0
-%define StructureNotifyMask 0x20003
+%define StructureNotifyMask 0x20000
 
 ; X11 Externs
 extern XOpenDisplay
@@ -71,7 +71,7 @@ open_window:
 	push nullptr
 	call XCreateSimpleWindow
 
-	add rsp, 0x18
+	add rsp, 0x18 ; Undo the stack pushes
 
 	mov [window], rax
 
