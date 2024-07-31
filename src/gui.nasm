@@ -21,6 +21,7 @@ extern XNextEvent
 extern XSetForeground
 extern XDrawLine
 extern XFlush
+extern XDrawRectangle
 
 ; Utility Functions
 extern exit_error
@@ -29,6 +30,7 @@ extern exit_error
 global open_window
 global set_color
 global draw_line
+global draw_rectangle
 
 open_window:
 	push rbp
@@ -160,6 +162,38 @@ draw_line:
 	mov rdi, [display]
 	call XFlush
 
+
+	add rsp, 64
+	pop rbp
+	ret
+
+
+; Draws a line from two window coordinates
+; rdi: x
+; rsi: y
+; rdx: width
+; rcx: height
+draw_rectangle:
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 64
+	
+	; Reorder params
+	push rcx ; 7
+	mov r9, rdx ; 6
+	mov r8, rsi ; 5
+	mov rcx, rdi ; 4
+	mov rdx, [graphical_context] ; 3
+	mov rsi, [window] ; 2
+	mov rdi, [display] ; 1
+	call XDrawRectangle
+
+	pop r9 ; undo the push
+
+	; Flush the command
+	mov rdi, [display]
+	call XFlush
 
 	add rsp, 64
 	pop rbp

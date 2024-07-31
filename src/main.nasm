@@ -9,6 +9,7 @@ CPU X64
 extern open_window
 extern set_color
 extern draw_line
+extern draw_rectangle
 
 ; Utility Functions
 extern cout
@@ -31,7 +32,7 @@ _start:
 	mov rsi, 30
 	mov rdx, 100
 	mov rcx, 200
-	call draw_line 
+	call draw_rectangle
 
 
 	.loop:
