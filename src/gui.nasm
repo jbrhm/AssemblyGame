@@ -271,16 +271,16 @@ move_left_paddle_up:
 
 	sub rsp, 64
 
-;    mov rdi, [display]
-;    lea rsi, [event]
-;    call XNextEvent
-;
-;    mov eax, [event]
-;    cmp rax, KeyPress ; wait for mapping event
-;    je update_left_up
+    mov rdi, [display]
+    lea rsi, [event]
+    call XNextEvent
+
+    mov eax, [event]
+    cmp rax, KeyPress ; wait for mapping event
+    je update_left_up
 
 	; Prints movement out to stdout
-	mov rdi, [no_input_msg]
+	lea edi, [no_input_msg]
 	mov rsi, 9
 	call cout
 
@@ -291,7 +291,7 @@ move_left_paddle_up:
 update_left_up:
 	
 	; Prints movement out to stdout
-	mov rdi, [left_paddle_up_msg]
+	lea rdi, [left_paddle_up_msg]
 	mov rsi, 15 
 	call cout
 
