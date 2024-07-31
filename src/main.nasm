@@ -23,10 +23,12 @@ _start:
 
 	call open_window
 
-	lea rdi, [hello]
-	mov rsi, 6
-	call cout
+	.loop:
+		lea rdi, [hello]
+		mov rsi, 6
+		call cout
 
+	jmp .loop
 
 	mov rax, SYSCALL_EXIT
 	mov rdi, 0

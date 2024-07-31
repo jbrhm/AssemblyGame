@@ -4,7 +4,7 @@ BITS 64
 CPU X64
 
 %define nullptr 0x0
-%define StructureNotifyMask 0x20000
+%define StructureNotifyMask 0x20003
 
 ; X11 Externs
 extern XOpenDisplay
@@ -14,6 +14,9 @@ extern XBlackPixel
 extern XWhitePixel
 extern XCreateSimpleWindow
 extern XSelectInput
+extern XMapWindow
+extern XCreateGC
+extern XNextEvent
 
 ; Utility Functions
 extern exit_error
@@ -68,17 +71,40 @@ open_window:
 	push nullptr
 	call XCreateSimpleWindow
 
-	pop r10 ; undo all of the pushes to the stack
-	pop r10
-	pop r10
+	add rsp, 0x18
 
 	mov [window], rax
 
+	; Select Inputs
 	mov rdi, [display]
 	mov rsi, [window]
 	mov rdx, StructureNotifyMask
 	call XSelectInput
 
+	; Map the window
+	mov rdi, [display]
+	mov rsi, [window]
+	call XMapWindow
+
+	; Get the graphical context
+	mov rdi, [display]
+	mov rsi, [window]
+	mov rdx, nullptr
+	mov rcx, nullptr
+	call XCreateGC
+	mov [graphical_context], rax
+
+wait_loop_start:
+    mov rdi, [display]
+    lea rsi, [event]
+    call XNextEvent
+
+    mov eax, [event]
+    cmp rax, 0x13
+    je wait_loop_end
+
+    jmp wait_loop_start
+wait_loop_end:
 
 	add rsp, 64
 	pop rbp
@@ -109,3 +135,8 @@ static root_window:data
 
 window: dq 0x0
 static window:data
+
+graphical_context: dq 0x0
+static graphical_context:data
+
+event: resb 0xc0
