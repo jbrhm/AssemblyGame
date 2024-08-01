@@ -1,8 +1,8 @@
 # Pong in Assembly
-##### Installation:
+### Installation:
 - Clone and cd into repo
 - run `cmake . -B build`
 - run `cmake --build build`
 
-##### Run
+### Run
 - run `build/AssemblyGame`
