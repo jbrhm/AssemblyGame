@@ -178,7 +178,6 @@ draw_line:
 	pop rbp
 	ret
 
-
 ; Draws a rectanlge at window coordinates
 ; rdi: x
 ; rsi: y
@@ -480,6 +479,18 @@ collision_handle:
 
 	sub rsp, 64
 
+	; Check respawn
+	mov r10, [ball_x]
+	mov r11, [respawn_zone_width]
+	cmp r10, r11
+	jle respawn_ball
+
+	mov r10, [ball_x]
+	mov r11, [window_width]
+	sub r11, [respawn_zone_width]
+	cmp r11, r10
+	jle respawn_ball
+
 	; Check lower bound
 	mov r10, [ball_y]
 	mov r11, [window_height]
@@ -542,6 +553,12 @@ flip_x:
 	mov [ball_v_x], r10
 	jmp collision_handle_end
 
+respawn_ball:
+	mov r10, [ball_respawn_x]
+	mov [ball_x], r10
+	mov r10, [ball_respawn_y]
+	mov [ball_y], r10
+
 collision_handle_end:
 	add rsp, 64
 
@@ -603,6 +620,15 @@ static half_ball_width:data
 
 half_ball_height: dq 10
 static half_ball_height:data
+
+ball_respawn_x: dq 320
+static ball_respawn_x:data
+
+ball_respawn_y: dq 240
+static ball_respawn_y:data
+
+respawn_zone_width: dq 30
+static respawn_zone_width:data
 
 section .data
 display: dq 0x0
