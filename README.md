@@ -10,5 +10,5 @@ Pong in assembly is a take on the classic pong game. This project was built usin
 ### Run
 - run `build/AssemblyGame`
 
-
+### Demo
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/kc3R4MejQeI/0.jpg)](http://www.youtube.com/watch?v=kc3R4MejQeI "Pong In Assembly Demo")
