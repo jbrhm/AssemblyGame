@@ -382,6 +382,14 @@ render:
 	mov rcx, [paddle_height]
 	call draw_solid_rectangle
 
+	mov rdi, [window_width]
+	sub rdi, [paddle_x_distance]
+	sub rdi, [paddle_width]
+	mov rsi, [left_height]
+	mov rdx, [paddle_width]
+	mov rcx, [paddle_height]
+	call draw_solid_rectangle
+
 	add rsp, 64
 	pop rbp
 	ret
@@ -445,3 +453,6 @@ key: dq 0x0
 ; Height Location
 left_height: dq 0x0
 static left_height:data
+
+right_height: dq 0x0
+static right_height:data
