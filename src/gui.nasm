@@ -332,7 +332,7 @@ move_left_paddle_up:
 	call cout
 
 	mov rax, [left_height]
-	sub rax, 1
+	sub rax, [paddle_speed]
 	mov [left_height], rax
 
 not_left_up:
@@ -360,7 +360,7 @@ move_left_paddle_down:
 	call cout
 
 	mov rax, [left_height]
-	add rax, 1
+	add rax, [paddle_speed]
 	mov [left_height], rax
 
 not_left_down:
@@ -388,7 +388,7 @@ move_right_paddle_up:
 	call cout
 
 	mov rax, [right_height]
-	sub rax, 1
+	sub rax, [paddle_speed]
 	mov [right_height], rax
 
 not_right_up:
@@ -416,7 +416,7 @@ move_right_paddle_down:
 	call cout
 
 	mov rax, [right_height]
-	add rax, 1
+	add rax, [paddle_speed]
 	mov [right_height], rax
 
 not_right_down:
@@ -453,7 +453,9 @@ render:
 
 	; Render ball
 	mov rdi, [ball_x]
+	sub rdi, [half_ball_width]
 	mov rsi, [ball_y]
+	sub rsi, [half_ball_height]
 	mov rdx, [ball_width]
 	mov rcx, [ball_height]
 	call draw_solid_rectangle
@@ -481,7 +483,6 @@ collision_handle:
 	; Check lower bound
 	mov r10, [ball_y]
 	mov r11, [window_height]
-	sub r11, [ball_height]
 	cmp r11, r10
 	jle flip_y
 	
@@ -491,12 +492,54 @@ collision_handle:
 	cmp r10, r11
 	jle flip_y
 
-	jmp collision_handle_end
+	; Check right paddle
+check_right_paddle:
+	mov r10, [ball_x]
+	mov r11, [window_width]
+	sub r11, [paddle_x_distance]
+	sub r11, [paddle_width]
+	cmp r10, r11
+	jle check_left_paddle
+
+	mov r10, [ball_y]
+	mov r11, [right_height]
+	cmp r10, r11
+	jle check_left_paddle
+
+	add r11, [paddle_height]
+	cmp r11, r10
+	jle check_left_paddle
+
+	jmp flip_x
+	
+check_left_paddle:
+	mov r10, [ball_x]
+	mov r11, [paddle_x_distance]
+	add r11, [paddle_width]
+	cmp r11, r10
+	jl collision_handle_end
+
+	mov r10, [ball_y]
+	mov r11, [left_height]
+	cmp r10, r11
+	jle collision_handle_end
+
+	add r11, [paddle_height]
+	cmp r11, r10
+	jle collision_handle_end
+
+	jmp flip_x
 
 flip_y:
 	mov r10, [ball_v_y]
 	neg r10
 	mov [ball_v_y], r10
+	jmp collision_handle_end
+
+flip_x:
+	mov r10, [ball_v_x]
+	neg r10
+	mov [ball_v_x], r10
 	jmp collision_handle_end
 
 collision_handle_end:
@@ -525,6 +568,9 @@ static paddle_x_distance:data
 half_paddle_height: dq 37
 static half_paddle_height:data
 
+paddle_speed: dq 0x2
+static paddle_speed:data
+
 ; Left Paddle
 
 left_paddle_up_msg: db "Left Paddle Up"
@@ -551,6 +597,12 @@ static ball_width:data
 
 ball_height: dq 20
 static ball_height:data
+
+half_ball_width: dq 10
+static half_ball_width:data
+
+half_ball_height: dq 10
+static half_ball_height:data
 
 section .data
 display: dq 0x0
@@ -588,10 +640,10 @@ right_height: dq 0x0
 static right_height:data
 
 ; Ball Vars
-ball_x: dq 0x0
+ball_x: dq 320
 static ball_x:data
 
-ball_y: dq 0x0
+ball_y: dq 240
 static ball_y:data
 
 ball_v_x: dq 0x1
