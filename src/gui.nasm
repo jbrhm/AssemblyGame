@@ -291,6 +291,8 @@ event_handle:
 
 	call move_left_paddle_up
 	call move_left_paddle_down
+	call move_right_paddle_up
+	call move_right_paddle_down
 
 	add rsp, 64
 	pop rbp
@@ -363,6 +365,62 @@ not_left_down:
 	pop rbp
     ret
 
+; Moves right paddle up if the input says so
+; Requires any events to be put into the [event] variable
+move_right_paddle_up:
+	
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 64
+
+	%define K_W 0x0077 ; lower case
+	%define K_S 0x0073 ; lower case
+
+	cmp DWORD [key], K_W
+	jne not_right_up
+
+	lea rdi, [right_paddle_up_msg]
+	mov rsi, 16
+	call cout
+
+	mov rax, [right_height]
+	sub rax, 1
+	mov [right_height], rax
+
+not_right_up:
+	add rsp, 64
+	pop rbp
+    ret
+
+; Moves right paddle down if the input says so
+; Requires any events to be put into the [event] variable
+move_right_paddle_down:
+	
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 64
+
+	%define K_W 0x0077 ; lower case
+	%define K_S 0x0073 ; lower case
+
+	cmp DWORD [key], K_S
+	jne not_right_down
+
+	lea rdi, [right_paddle_down_msg]
+	mov rsi, 18
+	call cout
+
+	mov rax, [right_height]
+	add rax, 1
+	mov [right_height], rax
+
+not_right_down:
+	add rsp, 64
+	pop rbp
+    ret
+
 ; Renders the two paddles
 render:
 	push rbp
@@ -385,7 +443,7 @@ render:
 	mov rdi, [window_width]
 	sub rdi, [paddle_x_distance]
 	sub rdi, [paddle_width]
-	mov rsi, [left_height]
+	mov rsi, [right_height]
 	mov rdx, [paddle_width]
 	mov rcx, [paddle_height]
 	call draw_solid_rectangle
@@ -418,6 +476,14 @@ static left_paddle_up_msg:data
 
 left_paddle_down_msg: db "Left Paddle Down"
 static left_paddle_down_msg:data
+
+; Right Paddle
+
+right_paddle_up_msg: db "Right Paddle Up"
+static right_paddle_up_msg:data
+
+right_paddle_down_msg: db "Right Paddle Down"
+static Right_paddle_down_msg:data
 
 no_input_msg: db "No Input"
 static no_input_msg:data
