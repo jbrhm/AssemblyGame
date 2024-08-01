@@ -14,6 +14,7 @@ extern draw_solid_rectangle
 
 extern event_handle
 extern render
+extern collision_handle
 
 ; Utility Functions
 extern cout
@@ -34,6 +35,7 @@ _start:
 	.loop:
 		call event_handle
 		call render
+		call collision_handle
 		mov rdi, 10
 		call sleep_in_ms
 

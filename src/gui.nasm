@@ -41,6 +41,7 @@ global set_color
 
 global event_handle
 global render
+global collision_handle
 
 open_window:
 	push rbp
@@ -271,6 +272,10 @@ event_handle:
 
 	sub rsp, 64
 
+	; Move the right paddle
+	call move_right_paddle_up
+	call move_right_paddle_down
+
 	; See if there are any pedning events so that we aren't blocked while waiting for an event
 	mov rdi, [display]
 	call XPending
@@ -291,8 +296,6 @@ event_handle:
 
 	call move_left_paddle_up
 	call move_left_paddle_down
-	call move_right_paddle_up
-	call move_right_paddle_down
 
 	add rsp, 64
 	pop rbp
@@ -374,11 +377,11 @@ move_right_paddle_up:
 
 	sub rsp, 64
 
-	%define K_W 0x0077 ; lower case
-	%define K_S 0x0073 ; lower case
-
-	cmp DWORD [key], K_W
-	jne not_right_up
+	mov r10, [right_height]
+	add r10, [half_paddle_height]
+	mov r11, [ball_y]
+	cmp r10, r11
+	jl not_right_up
 
 	lea rdi, [right_paddle_up_msg]
 	mov rsi, 16
@@ -402,11 +405,11 @@ move_right_paddle_down:
 
 	sub rsp, 64
 
-	%define K_W 0x0077 ; lower case
-	%define K_S 0x0073 ; lower case
-
-	cmp DWORD [key], K_S
-	jne not_right_down
+	mov r10, [right_height]
+	add r10, [half_paddle_height]
+	mov r11, [ball_y]
+	cmp r11, r10
+	jle not_right_down
 
 	lea rdi, [right_paddle_down_msg]
 	mov rsi, 18
@@ -468,6 +471,40 @@ render:
 	pop rbp
 	ret
 
+; Determine if the ball hits any boundary/paddle
+collision_handle:
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 64
+
+	; Check lower bound
+	mov r10, [ball_y]
+	mov r11, [window_height]
+	sub r11, [ball_height]
+	cmp r11, r10
+	jle flip_y
+	
+	; Check upper bound
+	mov r10, [ball_y]
+	mov r11, 0x0
+	cmp r10, r11
+	jle flip_y
+
+	jmp collision_handle_end
+
+flip_y:
+	mov r10, [ball_v_y]
+	neg r10
+	mov [ball_v_y], r10
+	jmp collision_handle_end
+
+collision_handle_end:
+	add rsp, 64
+
+	pop rbp
+	ret
+
 section .rodata
 window_width: dq 640
 static window_width:data
@@ -484,6 +521,9 @@ static paddle_width:data
 
 paddle_x_distance: dq 75
 static paddle_x_distance:data
+
+half_paddle_height: dq 37
+static half_paddle_height:data
 
 ; Left Paddle
 
