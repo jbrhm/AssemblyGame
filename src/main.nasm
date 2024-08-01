@@ -13,6 +13,7 @@ extern draw_rectangle
 extern draw_solid_rectangle
 
 extern event_handle
+extern render
 
 ; Utility Functions
 extern cout
@@ -30,16 +31,10 @@ _start:
 
 	call set_color
 
-	mov rdi, 20
-	mov rsi, 30
-	mov rdx, 100
-	mov rcx, 200
-	call draw_solid_rectangle
-
-
 	.loop:
 		call event_handle
-		mov rdi, 25
+		call render
+		mov rdi, 10
 		call sleep_in_ms
 
 	jmp .loop

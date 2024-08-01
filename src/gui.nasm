@@ -28,6 +28,7 @@ extern XFlush
 extern XDrawRectangle
 extern XPending
 extern XLookupKeysym
+extern XClearWindow
 
 ; Utility Functions
 extern cout
@@ -37,11 +38,9 @@ extern sleep_in_ms
 ; Functions
 global open_window
 global set_color
-global draw_line
-global draw_rectangle
-global draw_solid_rectangle
 
 global event_handle
+global render
 
 open_window:
 	push rbp
@@ -327,6 +326,10 @@ move_left_paddle_up:
 	mov rsi, 15
 	call cout
 
+	mov rax, [left_height]
+	sub rax, 1
+	mov [left_height], rax
+
 not_left_up:
 	add rsp, 64
 	pop rbp
@@ -351,10 +354,37 @@ move_left_paddle_down:
 	mov rsi, 17
 	call cout
 
+	mov rax, [left_height]
+	add rax, 1
+	mov [left_height], rax
+
 not_left_down:
 	add rsp, 64
 	pop rbp
     ret
+
+; Renders the two paddles
+render:
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 64
+
+	; Clear the screen
+	mov rdi, [display]
+	mov rsi, [window]
+	call XClearWindow
+
+	; Render the two paddles
+	mov rdi, [paddle_x_distance]
+	mov rsi, [left_height]
+	mov rdx, [paddle_width]
+	mov rcx, [paddle_height]
+	call draw_solid_rectangle
+
+	add rsp, 64
+	pop rbp
+	ret
 
 section .rodata
 window_width: dq 640
@@ -362,6 +392,16 @@ static window_width:data
 
 window_height: dq 480
 static window_height:data
+
+; Paddles
+paddle_height: dq 75
+static paddle_height:data
+
+paddle_width: dq 30
+static paddle_width:data
+
+paddle_x_distance: dq 75
+static paddle_x_distance:data
 
 ; Left Paddle
 
@@ -399,3 +439,9 @@ static graphical_context:data
 event: resb 0xc0
 
 key: dq 0x0
+
+; Left Paddle
+
+; Height Location
+left_height: dq 0x0
+static left_height:data
