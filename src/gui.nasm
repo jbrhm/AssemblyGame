@@ -291,6 +291,7 @@ event_handle:
 	mov [key], rax
 
 	call move_left_paddle_up
+	call move_left_paddle_down
 
 	add rsp, 64
 	pop rbp
@@ -317,6 +318,7 @@ move_left_paddle_up:
 	sub rsp, 64
 
 	%define K_UP 0xff52
+	%define K_DOWN 0xff54
 
 	cmp DWORD [key], K_UP
 	jne not_left_up
@@ -330,6 +332,30 @@ not_left_up:
 	pop rbp
     ret
 
+; Move LeftPaddle Up if the input says so
+; Requires any events to be put into the [event] variable
+move_left_paddle_down:
+	
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 64
+
+	%define K_UP 0xff52
+	%define K_DOWN 0xff54
+
+	cmp DWORD [key], K_DOWN
+	jne not_left_down
+
+	lea rdi, [left_paddle_down_msg]
+	mov rsi, 17
+	call cout
+
+not_left_down:
+	add rsp, 64
+	pop rbp
+    ret
+
 section .rodata
 window_width: dq 640
 static window_width:data
@@ -337,8 +363,13 @@ static window_width:data
 window_height: dq 480
 static window_height:data
 
+; Left Paddle
+
 left_paddle_up_msg: db "Left Paddle Up"
 static left_paddle_up_msg:data
+
+left_paddle_down_msg: db "Left Paddle Down"
+static left_paddle_down_msg:data
 
 no_input_msg: db "No Input"
 static no_input_msg:data
