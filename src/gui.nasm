@@ -27,6 +27,7 @@ extern XDrawLine
 extern XFlush
 extern XDrawRectangle
 extern XPending
+extern XLookupKeysym
 
 ; Utility Functions
 extern cout
@@ -40,7 +41,7 @@ global draw_line
 global draw_rectangle
 global draw_solid_rectangle
 
-global move_left_paddle_up
+global event_handle
 
 open_window:
 	push rbp
@@ -264,28 +265,36 @@ draw_solid_rectangle:
 	pop rbp
 	ret
 
-; Move LeftPaddle Up
-move_left_paddle_up:
-	
+; Handle the various inputs
+event_handle:
 	push rbp
 	mov rbp, rsp
 
 	sub rsp, 64
 
+	; See if there are any pedning events so that we aren't blocked while waiting for an event
 	mov rdi, [display]
 	call XPending
 
 	; See of there are any pending events
 	cmp rax, 0
-	je no_events
+	je no_events ; if there are no events, then exit fnc
 
     mov rdi, [display]
-    lea rsi, [event]
+    lea rsi, [event] ; pointer to event
     call XNextEvent
 
-    mov eax, [event]
-    cmp rax, KeyPress ; wait for mapping event
-    je update_left_up
+	; https://www.cl.cam.ac.uk/~mgk25/ucs/keysymdef.h
+	lea rdi, [event]
+	mov rsi, 0x0
+	call XLookupKeysym
+	mov [key], rax
+
+	call move_left_paddle_up
+
+	add rsp, 64
+	pop rbp
+    ret
 
 no_events:
 
@@ -298,13 +307,25 @@ no_events:
 	pop rbp
     ret
 
-update_left_up:
+; Move LeftPaddle Up if the input says so
+; Requires any events to be put into the [event] variable
+move_left_paddle_up:
 	
-	; Prints movement out to stdout
+	push rbp
+	mov rbp, rsp
+
+	sub rsp, 64
+
+	%define K_UP 0xff52
+
+	cmp DWORD [key], K_UP
+	jne not_left_up
+
 	lea rdi, [left_paddle_up_msg]
-	mov rsi, 15 
+	mov rsi, 15
 	call cout
 
+not_left_up:
 	add rsp, 64
 	pop rbp
     ret
@@ -345,3 +366,5 @@ graphical_context: dq 0x0
 static graphical_context:data
 
 event: resb 0xc0
+
+key: dq 0x0

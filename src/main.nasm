@@ -12,7 +12,7 @@ extern draw_line
 extern draw_rectangle
 extern draw_solid_rectangle
 
-extern move_left_paddle_up
+extern event_handle
 
 ; Utility Functions
 extern cout
@@ -38,8 +38,8 @@ _start:
 
 
 	.loop:
-		call move_left_paddle_up
-		mov rdi, 50
+		call event_handle
+		mov rdi, 25
 		call sleep_in_ms
 
 	jmp .loop
