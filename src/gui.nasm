@@ -512,6 +512,12 @@ check_right_paddle:
 	cmp r10, r11
 	jle check_left_paddle
 
+	mov r10, [ball_x]
+	mov r11, [window_width]
+	sub r11, [paddle_x_distance]
+	cmp r11, r10
+	jle check_left_paddle
+
 	mov r10, [ball_y]
 	mov r11, [right_height]
 	cmp r10, r11
@@ -528,6 +534,11 @@ check_left_paddle:
 	mov r11, [paddle_x_distance]
 	add r11, [paddle_width]
 	cmp r11, r10
+	jl collision_handle_end
+
+	mov r10, [ball_x]
+	mov r11, [paddle_x_distance]
+	cmp r10, r11
 	jl collision_handle_end
 
 	mov r10, [ball_y]
