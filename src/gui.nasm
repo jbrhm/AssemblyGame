@@ -448,6 +448,22 @@ render:
 	mov rcx, [paddle_height]
 	call draw_solid_rectangle
 
+	; Render ball
+	mov rdi, [ball_x]
+	mov rsi, [ball_y]
+	mov rdx, [ball_width]
+	mov rcx, [ball_height]
+	call draw_solid_rectangle
+
+	; Update ball pos
+	mov r10, [ball_x]
+	add r10, [ball_v_x]
+	mov [ball_x], r10
+
+	mov r10, [ball_y]
+	add r10, [ball_v_y]
+	mov [ball_y], r10
+
 	add rsp, 64
 	pop rbp
 	ret
@@ -488,6 +504,14 @@ static Right_paddle_down_msg:data
 no_input_msg: db "No Input"
 static no_input_msg:data
 
+; Ball
+
+ball_width: dq 20
+static ball_width:data
+
+ball_height: dq 20
+static ball_height:data
+
 section .data
 display: dq 0x0
 static display:data
@@ -522,3 +546,16 @@ static left_height:data
 
 right_height: dq 0x0
 static right_height:data
+
+; Ball Vars
+ball_x: dq 0x0
+static ball_x:data
+
+ball_y: dq 0x0
+static ball_y:data
+
+ball_v_x: dq 0x1
+static ball_v_x:data
+
+ball_v_y: dq 0x1
+static ball_v_y:data
